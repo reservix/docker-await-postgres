@@ -3,7 +3,7 @@ import execa from 'execa';
 import getPort from 'get-port';
 import { PassThrough } from 'stream';
 
-const docker = new Docker({ socketPath: '/var/run/docker.sock' });
+const docker = new Docker();
 
 const getImage = async (name: string) => {
   const image = await docker.getImage(name);
