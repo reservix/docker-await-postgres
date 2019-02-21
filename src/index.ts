@@ -1,15 +1,24 @@
 import Docker, { Container } from 'dockerode';
 import execa from 'execa';
 import getPort from 'get-port';
+import { ClientConfig, Client } from 'pg';
+import retry from 'p-retry';
 import { PassThrough } from 'stream';
 
 const docker = new Docker();
 
-const getImage = async (name: string) => {
+/**
+ * Ensure that the image is available on the machine.
+ * Will pull the image if it doesn't exist yet.
+ *
+ * @param name image name including version
+ */
+const ensureImage = async (name: string) => {
   const image = await docker.getImage(name);
   try {
     await image.inspect();
   } catch {
+    // TODO: How to do this with `dockerode`?
     // Docker API will yield a 404 -> image does not exist
     console.log(`Pulling "${name}"...`);
     await execa('docker', ['pull', name]);
@@ -22,7 +31,9 @@ const getImage = async (name: string) => {
 const THE_MAGIC_WORD = 'PostgreSQL init process complete; ready for start up.';
 
 /**
- * Resolved when the `postgres` container is "truly" ready.
+ * Wait until `postgres` was initialized.
+ * The docker container will execute SQL script files first.
+ * Afterwards the `postgres` server is rebootet.
  *
  * @param container
  */
@@ -58,6 +69,20 @@ const isInitialized = (container: Container) =>
         stream.pipe(logger);
       }
     );
+  });
+
+/**
+ * Ping a `postgres` server (10 times max) until it accepts connections.
+ *
+ * @param config client configuration to reach the `postgres` server
+ */
+const isReady = (config: ClientConfig) =>
+  retry(async () => {
+    const client = new Client(config);
+
+    await client.connect();
+    await client.query('SELECT NOW()');
+    await client.end();
   });
 
 /**
@@ -114,7 +139,7 @@ export const awaitPostgres = async (config: Config) => {
   const port = await getPort();
   const image = config.image || 'postgres';
 
-  await getImage(image);
+  await ensureImage(image);
 
   const container = await docker.createContainer({
     Image: image,
@@ -133,7 +158,9 @@ export const awaitPostgres = async (config: Config) => {
   });
 
   await container.start();
+
   await isInitialized(container);
+  await isReady({ ...config, host: 'localhost', port });
 
   return {
     port,

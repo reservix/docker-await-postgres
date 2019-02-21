@@ -19,16 +19,11 @@ const { awaitPostgres } = require('../lib');
     ...credentials,
   });
 
-  await execa('docker', ['ps']);
-
   await client.connect();
   console.log(`Client connected to Database.`);
 
-  const result = await client.query(
-    'SELECT * FROM pg_stat_database WHERE datname=$1',
-    [credentials.database]
-  );
-  console.log(result);
+  const { rows } = await client.query('SELECT NOW()');
+  console.log(`Server time is: ${rows[0].now}`);
 
   await client.end();
   await stop();
