@@ -56,7 +56,6 @@ const isReady = (container: Container) =>
         }
 
         container.modem.demuxStream(stream, logger, logger);
-        stream.on('end', () => logger.end());
       }
     );
   });
