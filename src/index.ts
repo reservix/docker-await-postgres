@@ -26,13 +26,13 @@ const THE_MAGIC_WORD = 'PostgreSQL init process complete; ready for start up.';
  *
  * @param container
  */
-const isReady = (container: Container) =>
+const isInitialized = (container: Container) =>
   new Promise((resolve, reject) => {
     const logger = new PassThrough();
 
     logger.on('data', (chunk: Buffer | string) => {
-      const string = chunk.toString('utf8').trim();
-      if (string.includes(THE_MAGIC_WORD)) {
+      const line = chunk.toString('utf8').trim();
+      if (line.includes(THE_MAGIC_WORD)) {
         resolve();
       }
     });
@@ -55,7 +55,7 @@ const isReady = (container: Container) =>
           return reject('No stream to read available!');
         }
 
-        container.modem.demuxStream(stream, logger, logger);
+        stream.pipe(logger);
       }
     );
   });
@@ -133,7 +133,7 @@ export const awaitPostgres = async (config: Config) => {
   });
 
   await container.start();
-  await isReady(container);
+  await isInitialized(container);
 
   return {
     port,
