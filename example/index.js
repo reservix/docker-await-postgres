@@ -1,22 +1,22 @@
 #!/usr/bin/env node
 const { Client } = require('pg');
-const execa = require('execa');
-const { awaitPostgres } = require('../lib');
+const { startProsgresContainer } = require('../lib');
 
 (async () => {
-  const credentials = {
+  const config = {
     user: 'admin',
     password: '12345',
     database: 'database',
+    image: 'postgres',
   };
 
-  const { stop, port } = await awaitPostgres(credentials);
+  const { stop, port } = await startProsgresContainer(config);
   console.log(`Postgres running on port ${port} ...`);
 
   const client = new Client({
     host: 'localhost',
     port,
-    ...credentials,
+    ...config,
   });
 
   await client.connect();

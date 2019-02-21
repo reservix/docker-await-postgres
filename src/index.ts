@@ -1,5 +1,4 @@
 import Docker, { Container } from 'dockerode';
-import execa from 'execa';
 import getPort from 'get-port';
 import { ClientConfig, Client } from 'pg';
 import retry from 'p-retry';
@@ -13,15 +12,17 @@ const docker = new Docker();
  *
  * @param name image name including version
  */
-const ensureImage = async (name: string) => {
+const ensureImage = async (name: string): Promise<void> => {
   const image = await docker.getImage(name);
   try {
     await image.inspect();
   } catch {
-    // TODO: How to do this with `dockerode`?
-    // Docker API will yield a 404 -> image does not exist
-    console.log(`Pulling "${name}"...`);
-    await execa('docker', ['pull', name]);
+    console.log(`Pulling image "${name}" ...`);
+    try {
+      await docker.pull(name, {});
+    } catch (e) {
+      throw new Error(`Image "${name}" can not be pulled.\n\n${e.message}`);
+    }
   }
 };
 
@@ -37,7 +38,7 @@ const THE_MAGIC_WORD = 'PostgreSQL init process complete; ready for start up.';
  *
  * @param container
  */
-const isInitialized = (container: Container) =>
+const isInitialized = async (container: Container): Promise<void> =>
   new Promise((resolve, reject) => {
     const logger = new PassThrough();
 
@@ -63,7 +64,7 @@ const isInitialized = (container: Container) =>
         }
 
         if (!stream) {
-          return reject('No stream to read available!');
+          return reject(new Error('No stream to read available!'));
         }
 
         stream.pipe(logger);
@@ -76,7 +77,7 @@ const isInitialized = (container: Container) =>
  *
  * @param config client configuration to reach the `postgres` server
  */
-const isReady = (config: ClientConfig) =>
+const isReady = async (config: ClientConfig): Promise<void> =>
   retry(async () => {
     const client = new Client(config);
 
@@ -90,15 +91,18 @@ const isReady = (config: ClientConfig) =>
  *
  * @param container the container to kill
  */
-const kill = (container: Container) => async () => {
+const kill = async (container: Container): Promise<void> => {
   try {
     await container.kill();
   } finally {
     try {
       await container.remove({ force: true });
     } catch (err) {
-      // if 404, we probably used the --rm flag on container launch. it's all good.
-      if (err.statusCode !== 404 && err.statusCode !== 409) throw err;
+      // If 404, we probably used the --rm flag on container launch. it's all good.
+      if (err.statusCode !== 404 && err.statusCode !== 409) {
+        // eslint-disable-next-line no-unsafe-finally
+        throw err;
+      }
     }
   }
 };
@@ -128,6 +132,18 @@ export type Config = {
   database: string;
 };
 
+export type Result = {
+  /**
+   * Port on which `postgres` is running.
+   */
+  port: number;
+
+  /**
+   * Stop `postgres` container.
+   */
+  stop: () => Promise<void>;
+};
+
 /**
  * Start a `postgres` container and wait until it is ready
  * to process queries.
@@ -135,7 +151,9 @@ export type Config = {
  * @param config
  * @returns object with `port` number and a `stop` method
  */
-export const awaitPostgres = async (config: Config) => {
+export const startProsgresContainer = async (
+  config: Config
+): Promise<Result> => {
   const port = await getPort();
   const image = config.image || 'postgres';
 
@@ -164,6 +182,6 @@ export const awaitPostgres = async (config: Config) => {
 
   return {
     port,
-    stop: kill(container),
+    stop: async () => kill(container),
   };
 };
