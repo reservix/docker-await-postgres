@@ -24,4 +24,12 @@ test('wait until postgres is ready', async () => {
   expect(rows[0].now).toEqual(expect.any(Date));
 
   await stop();
+
+  // Should fail, since container was stopped.
+  const c = new Client({
+    host: 'localhost',
+    port,
+    ...config,
+  });
+  await expect(c.connect()).rejects.toThrow(/ECONNREFUSED/);
 });
