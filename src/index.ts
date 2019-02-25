@@ -151,7 +151,7 @@ export type Result = {
  * @param config
  * @returns object with `port` number and a `stop` method
  */
-export const startProsgresContainer = async (
+export const startPostgresContainer = async (
   config: Config
 ): Promise<Result> => {
   const port = await getPort();

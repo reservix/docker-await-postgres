@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 const { Client } = require('pg');
-const { startProsgresContainer } = require('../lib');
+const { startPostgresContainer } = require('../lib');
 
 (async () => {
   const config = {
@@ -10,7 +10,7 @@ const { startProsgresContainer } = require('../lib');
     image: 'postgres',
   };
 
-  const { stop, port } = await startProsgresContainer(config);
+  const { stop, port } = await startPostgresContainer(config);
   console.log(`Postgres running on port ${port} ...`);
 
   const client = new Client({
