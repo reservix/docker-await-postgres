@@ -11,3 +11,32 @@ However, it is
 ## Why
 
 See https://github.com/docker-library/postgres/issues/146
+
+## Usage
+
+```ts
+const { Client } = require('pg');
+const { startPostgresContainer } = require('../lib');
+
+// Start the container
+const config = {
+  user: 'admin',
+  password: '12345',
+  database: 'database',
+  image: 'postgres',
+};
+const { stop, port } = await startPostgresContainer(config);
+
+// Connect to the container
+const client = new Client({
+  host: 'localhost',
+  port,
+  ...config,
+});
+await client.connect();
+const { rows } = await client.query('SELECT NOW()');
+await client.end();
+
+// Stop the container
+await stop();
+```
