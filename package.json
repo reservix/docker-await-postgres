@@ -36,7 +36,7 @@
     "@types/jest": "24.0.6",
     "@types/p-retry": "3.0.0",
     "@types/pg": "7.4.13",
-    "@typescript-eslint/eslint-plugin": "1.4.0",
+    "@typescript-eslint/eslint-plugin": "1.4.1",
     "conventional-changelog-cli": "2.0.12",
     "conventional-changelog-emojis": "3.0.1",
     "eslint": "5.14.1",
@@ -50,7 +50,7 @@
     "prettier": "1.16.4",
     "pretty-quick": "1.10.0",
     "ts-jest": "24.0.0",
-    "typescript": "3.3.3"
+    "typescript": "3.3.3333"
   },
   "scripts": {
     "start": "tsc",
