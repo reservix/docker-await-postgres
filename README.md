@@ -15,8 +15,8 @@ See https://github.com/docker-library/postgres/issues/146
 ## Usage
 
 ```ts
-const { Client } = require('pg');
-const { startPostgresContainer } = require('../lib');
+import { Client } from 'pg';
+import { startPostgresContainer } from 'docker-await-postgres';
 
 // Start the container
 const config = {

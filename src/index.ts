@@ -155,7 +155,7 @@ export const startPostgresContainer = async (
   config: Config
 ): Promise<Result> => {
   const port = await getPort();
-  const image = config.image || 'postgres';
+  const image = config.image || 'postgres:latest';
 
   await ensureImage(image);
 
