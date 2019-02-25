@@ -1,3 +1,6 @@
+sudo: required
+services:
+  - docker
 git:
   depth: 1
 os:
