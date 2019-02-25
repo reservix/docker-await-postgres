@@ -1,4 +1,5 @@
 import Docker, { Container } from 'dockerode';
+import execa from 'execa';
 import getPort from 'get-port';
 import { ClientConfig, Client } from 'pg';
 import retry from 'p-retry';
@@ -19,7 +20,8 @@ const ensureImage = async (name: string): Promise<void> => {
   } catch {
     console.log(`Pulling image "${name}" ...`);
     try {
-      await docker.pull(name, {});
+      // `dockerode`'s pull method doesn't work ... fallback to CLI
+      await execa('docker', ['pull', name]);
     } catch (e) {
       throw new Error(`Image "${name}" can not be pulled.\n\n${e.message}`);
     }
