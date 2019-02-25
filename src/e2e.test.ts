@@ -1,6 +1,8 @@
 import { Client } from 'pg';
 import { startPostgresContainer } from '.';
 
+jest.setTimeout(1000 * 60 * 5); // 5 Min timeout, so the image cann be pulled.
+
 test('wait until postgres is ready', async () => {
   const config = {
     user: 'admin',
