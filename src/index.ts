@@ -18,7 +18,6 @@ const ensureImage = async (name: string): Promise<void> => {
   try {
     await image.inspect();
   } catch {
-    console.log(`Pulling image "${name}" ...`);
     try {
       // `dockerode`'s pull method doesn't work ... fallback to CLI
       await execa('docker', ['pull', name]);
@@ -31,7 +30,8 @@ const ensureImage = async (name: string): Promise<void> => {
 /**
  * Meh ...
  */
-const THE_MAGIC_WORD = 'PostgreSQL init process complete; ready for start up.';
+export const THE_MAGIC_WORD =
+  'PostgreSQL init process complete; ready for start up.';
 
 /**
  * Wait until `postgres` was initialized.
@@ -40,13 +40,16 @@ const THE_MAGIC_WORD = 'PostgreSQL init process complete; ready for start up.';
  *
  * @param container
  */
-const isInitialized = async (container: Container): Promise<void> =>
+const isInitialized = async (
+  container: Container,
+  waitForMessage: string
+): Promise<void> =>
   new Promise((resolve, reject) => {
     const logger = new PassThrough();
 
     logger.on('data', (chunk: Buffer | string) => {
       const line = chunk.toString('utf8').trim();
-      if (line.includes(THE_MAGIC_WORD)) {
+      if (line.includes(waitForMessage)) {
         resolve();
       }
     });
@@ -132,6 +135,13 @@ export type Config = {
    * Database name.
    */
   database: string;
+
+  /**
+   * Sub-string that represents the successul initialization of the `postgres` server.
+   * Not to confused with "ready". This only means that the server read all scripts
+   * files and created tables etc.
+   */
+  theMagicWord?: string;
 };
 
 export type Result = {
@@ -179,7 +189,7 @@ export const startPostgresContainer = async (
 
   await container.start();
 
-  await isInitialized(container);
+  await isInitialized(container, config.theMagicWord || THE_MAGIC_WORD);
   await isReady({ ...config, host: 'localhost', port });
 
   return {
