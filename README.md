@@ -14,8 +14,8 @@ Especially, the later will help when writing integration tests.
 
 ## Why
 
-The official _[postgres](https://hub.docker.com/_/postgres)_ container loads and executes SQL scripts to create an initial
-table layout when the container is started, followed by a reboot of the \_postgres_ server. This is a welcome feature and
+The official [_postgres_](https://hub.docker.com/_/postgres) container loads and executes SQL scripts to create an initial
+table layout when the container is started, followed by a reboot of the _postgres_ server. This is a welcome feature and
 a best practice when using docker to host your database. Sadly, it makes it harder to use the image when writing integration
 tests for your database.
 
