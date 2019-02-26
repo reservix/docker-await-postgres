@@ -1,3 +1,5 @@
 lib/
 coverage/
+example/
+
 jest.config.js
