@@ -14,8 +14,8 @@ const docker = new Docker();
  * @param name image name including version
  */
 const ensureImage = async (name: string): Promise<void> => {
-  const image = await docker.getImage(name);
   try {
+    const image = await docker.getImage(name);
     await image.inspect();
   } catch {
     try {
