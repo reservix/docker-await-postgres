@@ -27,6 +27,17 @@ Using the Docker API (via `dockerode` or similar) will only tell you if the cont
 
 `docker-await-postgres` will read the server logs and long poll until the _postgres_ server is trulry ready. So that tests only run when
 the server is trurly ready to accept connections.
+Start `postgres` docker container and wait until it is truly ready.
+
+This module is based on on [`ava-fixture-docker-db`](https://github.com/cdaringe/ava-fixture-docker-db).
+However, it is
+
+- (test) runner agnostic
+- waits until `postgres` executed all SQL scripts and restarted
+
+## Why
+
+See https://github.com/docker-library/postgres/issues/146
 
 ## Usage
 
