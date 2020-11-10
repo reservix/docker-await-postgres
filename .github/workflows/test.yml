@@ -1,12 +1,14 @@
-name: Release
+name: Test
 on:
-  push:
-    branches:
-      - master
+  - pull_request
+
 jobs:
-  release:
-    name: Release
+  test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: ['12', '14']
+    name: Test with Node v${{ matrix.node }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -15,11 +17,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: 14
+          node-version: ${{ matrix.node }}
       - name: Install dependencies
         run: yarn install --frozen-lockfile
-      - name: Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npx semantic-release
+      - name: Test
+        run: yarn ci
